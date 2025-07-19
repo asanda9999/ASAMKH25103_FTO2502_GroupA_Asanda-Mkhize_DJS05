@@ -1,35 +1,75 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import { PodcastProvider } from "./context/PodcastContext";
+import { fetchPodcasts } from "./api/fetchPodcasts";
+import { genres } from "./data";
+import Header from "./components/Header";
+import SearchBar from "./components/SearchBar";
+import SortSelect from "./components/SortSelect";
+import GenreFilter from "./components/GenreFilter";
+import PodcastGrid from "./components/PodcastGrid";
+import Pagination from "./components/Pagination";
+import styles from "./App.module.css";
+import React, { Suspense, lazy } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
+const PodcastDetail = lazy(() => import("./components/PodcastDetail"));
+
+/**
+ * Root component of the Podcast Explorer app.
+ * Handles data fetching and layout composition.
+ */
+export default function App() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchPodcasts(() => {}, setError, setLoading);
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <>
+            <Header />
+            <main className={styles.main}>
+              <section className={styles.controls}>
+                <SearchBar />
+                <GenreFilter genres={genres} />
+                <SortSelect />
+              </section>
+              {loading && (
+                <div className={styles.messageContainer}>
+                  <div className={styles.spinner}></div>
+                  <p>Loading podcasts...</p>
+                </div>
+              )}
+              {error && (
+                <div className={styles.message}>
+                  <div className={styles.error}>
+                    Error occurred while fetching podcasts: {error}
+                  </div>
+                </div>
+              )}
+              {!loading && !error && (
+                <>
+                  <PodcastGrid genres={genres} />
+                  <Pagination />
+                </>
+              )}
+            </main>
+          </>
+        }
+      />
+      <Route
+        path="/podcast/:id/:slug"
+        element={
+          <Suspense fallback={<div>Loading show details...</div>}>
+            <PodcastDetail />
+          </Suspense>
+        }
+      />
+    </Routes>
+  );
 }
-
-export default App
