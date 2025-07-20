@@ -1,3 +1,5 @@
+import { formatDate } from "../utils/formatDate";
+
 export default function PodcastDetailHeader({ show, genres, seasons }) {
   return (
     <div className="podcast-detail-header">
@@ -23,7 +25,7 @@ export default function PodcastDetailHeader({ show, genres, seasons }) {
           </div>
           <div>
             <div className="podcast-detail-stat-label">LAST UPDATED</div>
-            <div>{show.updated ? show.updated : "-"}</div>
+            <div>{show.updated ? formatDate(show.updated) : "-"}</div>
           </div>
         </div>
       </div>
